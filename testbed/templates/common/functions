@@ -1,0 +1,217 @@
+#!/bin/bash -
+
+start_emane()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+
+    if [ -f $xml ]
+    then
+        echo "$node_name: starting emane: $xml"
+
+        emane "$xml" -r -d -l 3 -f "$logfile" \
+              --pidfile "$pidfile" --uuidfile "$uuidfile"
+
+        retval=$?
+    else
+        echo "$node_name: missing emane XML: $xml"
+        retval=1
+    fi
+
+    return $retval
+}
+
+start_emanetransportd()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+
+    if [ -f $xml ]
+    then
+        echo "$node_name: starting emanetransportd: $xml"
+
+        emanetransportd -r -d "$xml" -l 3 -f "$logfile" \
+                        --pidfile "$pidfile" --uuidfile "$uuidfile"
+
+        retval=$?
+    else
+        echo "$node_name: missing emanetransoportd XML: $xml"
+        retval=1
+    fi
+
+    return $retval
+}
+
+start_otestpointd()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+
+    if [ -f $xml ]
+    then
+        echo "$node_name: starting otestpointd: $xml"
+
+        otestpointd "$xml" -d -l 3 -f "$logfile" \
+                    --pidfile "$pidfile" --uuidfile "$uuidfile"
+
+        retval=$?
+    else
+        echo "$node_name: missing opentestpointd XML: $xml"
+        retval=1
+    fi
+
+    return $retval
+}
+
+start_otestpoint_recorder()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+
+    if [ -f $xml ]
+    then
+        echo "$node_name: starting otestpoint-recorder: $xml"
+
+        otestpoint-recorder "$xml" -d -l 3 -f "$logfile" \
+                            --pidfile "$pidfile" --uuidfile "$uuidfile"
+
+        retval=$?
+    else
+        echo "$node_name: missing otestpoint-recorder XML: $xml"
+        retval=1
+    fi
+
+    return $retval
+}
+
+start_otestpoint_broker()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+
+    if [ -f $xml ]
+    then
+        echo "$node_name: starting otestpoint-broker: $xml"
+
+        otestpoint-broker "$xml" -d -l 3 -f "$logfile" \
+                          --pidfile "$pidfile" --uuidfile "$uuidfile"
+
+        retval=$?
+    else
+        echo "$node_name: missing otestpoint-broker XML: $xml"
+        retval=1
+    fi
+    
+    return $retval
+}
+
+wait_for_device()
+{
+    local node_name=$1
+    local device=$2
+    local timeout=$3
+    local waited=0
+
+    echo "$node_name: waiting for $device"
+
+    while(! ip route show | grep -q $device); do
+        
+        if [ $waited -lt $timeout ]
+        then
+            sleep 1
+            waited=$(($waited + 1))
+        else
+            echo "$node_name: $device not found, timed out in $timeout seconds"
+            return 1
+        fi
+    done
+
+    echo "$node_name: $device found in $waited seconds"
+    return 0
+}
+
+start_emaneeventd()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+
+    if [ -f $xml ]
+    then
+
+        echo "$node_name: starting emaneeventd: $xml"
+
+        emaneeventd -r -d "$xml" -l 3 -f "$logfile" \
+                    --pidfile "$pidfile" --uuidfile "$uuidfile"
+
+        retval=$?
+
+    else
+        echo "$node_name: missing emaneeventd XML: $xml"
+        retval=1
+    fi
+
+    return $retval
+}
+
+start_emaneeventservice()
+{
+    local node_name=$1
+    local xml=$2
+    local logfile=$3
+    local pidfile=$4
+    local uuidfile=$5
+    local starttime="$6"
+
+    local startoption=""
+
+    if [ -n "$starttime" ]
+    then
+        startoption="--starttime $(date --date "$starttime" "+%H:%M:%S")"
+    fi
+
+    if [ -f $xml ]
+    then
+        echo "$node_name: starting emaneeventservice: $xml at $starttime"
+
+        emaneeventservice -d "$xml" -l 3 -f "$logfile" \
+                          --pidfile "$pidfile" --uuidfile "$uuidfile" \
+                          $startoption
+        
+        retval=$?
+    else
+        echo "$node_name: missing emaneeventservice XML: $xml"
+
+        retval=1
+    fi
+
+    return $retval
+}
+
+start_olsr()
+{
+    local node_name=$1
+    local routingconf=$2
+    local logfile=$3
+
+    echo "$node_name: starting olsr: $routingconf"
+
+    olsrd -f "$routingconf" &> "$logfile"
+}

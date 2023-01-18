@@ -1,0 +1,32 @@
+#!/bin/bash -
+
+top_dir=$1
+start_time=$2
+
+cd "$top_dir/host"
+
+# Load Common Functions
+. ./functions
+
+# Start EMANE Event Service
+if [ -f eventservice.xml ]
+then
+    start_emaneeventservice \
+        'host' \
+        eventservice.xml \
+        $top_dir/persist/host/var/log/emaneeventservice.log \
+        $top_dir/persist/host/var/run/emaneeventservice.pid \
+        $top_dir/persist/host/var/run/emaneeventservice.uuid \
+        "$start_time"
+fi
+
+# Start OTestPoint-Broker
+if [ -f otestpoint-broker.xml ]
+then
+    start_otestpoint_broker \
+        'host' \
+        otestpoint-broker.xml \
+        $top_dir/persist/host/var/log/otestpoint-broker.log \
+        $top_dir/persist/host/var/run/otestpoint-broker.pid \
+        $top_dir/persist/host/var/run/otestpoint-broker.uuid
+fi

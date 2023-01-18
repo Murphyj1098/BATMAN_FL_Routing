@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nem SYSTEM 'file:///usr/share/emane/dtd/nem.dtd'>
+<nem>
+    <transport definition="transvirtual.xml"/>
+    <mac definition="rfpipe_mac.xml"/>
+    <phy definition="rfpipe_phy.xml"/>
+</nem>

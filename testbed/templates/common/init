@@ -1,0 +1,52 @@
+#!/bin/bash -
+
+<%
+import re
+net_devs = set()
+for key in context.keys():
+    if re.match(r'lxc.interface\.(\d+)\.name', key) and context[key] != 'lo':
+        net_devs.add(context[key])
+%>
+
+# This function is modified to use a generic sshd config file, not the system config
+start_sshd()
+{
+    local pidfile=$1
+    local sshConfig=$2
+
+    /usr/sbin/sshd -o "PidFile=$pidfile" -f $sshConfig
+}
+
+export PATH=$PATH:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
+top_dir=$1
+node=$2
+env=$3
+start_utc=$4
+
+# fix devpts
+mount /dev/pts -o remount,rw,mode=620,ptmxmode=666,gid=5
+
+# turn on forwarding
+sysctl net.ipv4.ip_forward=1
+
+# disable tx and rx checksum offloading
+% for net_dev in net_devs:
+ethtool --offload  ${net_dev} rx off tx off
+% endfor
+
+# source an environment (if provided)
+if [ -n "$env" ]
+then
+    . $env
+fi
+
+# start sshd
+start_sshd $top_dir/persist/$node/var/run/ssh.pid $top_dir/../templates/common/sshd_config_lxc
+
+# run a local init if provided
+if [ -f $top_dir/$node/init.local ]
+then
+    bash $top_dir/$node/init.local "$top_dir" "$node" "$start_utc" \
+        2>&1 | tee  $top_dir/persist/$node/var/log/init.log
+fi
