@@ -5,3 +5,18 @@ exp/*
 !exp/experiment.cfg
 !exp/letce2.cfg
 !exp/Makefile
+
+
+## VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
